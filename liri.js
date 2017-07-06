@@ -4,25 +4,30 @@ var keys = require('./keys.js');
 // import dependencies
 var request = require('request');
 var Spotify = require('node-spotify-api');
+var fs = require('fs');
+var Twitter = require('twitter');
 
 // initiate the processing on command execution
-initiate();
+initiate(null, null);
 
-function initiate() {
-    var command = process.argv[2];
-    var argument = process.argv[3];
+// This function initiates the requested processing
+function initiate(command, argument) {
+    if (typeof(command) == 'undefined' || command === null) {
+        command = process.argv[2];
+        argument = process.argv[3];
+    }
     switch (command) {
         case 'my-tweets':
-            tweetify(command, argument);
+            tweetify(argument);
             break;
         case 'spotify-this-song':
-            spotify(command, argument);
+            spotify(argument);
             break;
         case 'movie-this':
-            moviefy(command, argument);
+            moviefy(argument);
             break;
         case 'do-what-it-says':
-            dowhatify(command, argument);
+            dowhatify();
             break;
         default:
             console.log('\nUsage: node liri.js <command> <argument>');
@@ -31,86 +36,85 @@ function initiate() {
     }
 }
 
+// This function fetches tweets for a twitter ID in the argument from Twitter
+function tweetify(argument) {
+    var client = new Twitter({
+        consumer_key: keys.twitterKeys.consumer_key,
+        consumer_secret: keys.twitterKeys.consumer_secret,
+        access_token_key: keys.twitterKeys.access_token_key,
+        access_token_secret: keys.twitterKeys.access_token_secret
+    });
+    var params = {
+        user_id: argument,
+        since_id: 5,
+        max_id: 3,
+        count: 2
+    };
+    client.get('statuses/user_timeline', argument, function(error, tweets, response) {
+        if (!error) {
+            console.log(tweets);
 
-function tweetify(command, argument) {
-    console.log(command + ',' + argument);
+        } else {
+            console.log(error);
+        }
+    });
 }
 
-function spotify(command, argument) {
-    console.log(command + ',' + argument);
-
+// This function searches Spotify through search API 
+// for the requested track details in the argument
+function spotify(argument) {
     var spotify = new Spotify({
         id: keys.spotifyKeys.client_id,
         secret: keys.spotifyKeys.client_secret
     });
-
     spotify.search({ type: 'track', query: argument, limit: 1 }, function(err, data) {
         if (err) {
             return console.log('Error occurred: ' + err);
         }
-        console.log(JSON.stringify(data));
-
-        // console.log('Artist:' + data.tracks.items.album);
-        // console.log('Song:');
-        // console.log('Preview link of the song from Spotify:');
-        // console.log('Album:');
-
-        // });
-
-        // var queryURL = "https://api.spotify.com/v1/search?q=" + argument + "&type=artist";
-
-
-        // request(queryUrl, function(error, response, body) {
-
-        //     // If the request is successful
-        //     if (!error && response.statusCode === 200) {
-
-        //         console.log(JSON.parse(body));
-
-
-        //     }
-        // });
+        console.log('Artist: ' + data.tracks.items[0].album.artists[0].name);
+        console.log('Song: ' + data.tracks.items[0].name);
+        console.log('Preview: ' + data.tracks.items[0].preview_url);
+        console.log('Album:' + data.tracks.items[0].album.name);
     });
+}
 
+// This function searches OMDB through search API 
+// for the requested movie details in the argument
+function moviefy(argument) {
+    // Then run a request to the OMDB API with the movie specified
+    var queryUrl = "http://www.omdbapi.com/?t=" + argument + "&y=&plot=short&apikey=40e9cece";
+    request(queryUrl, function(error, response, body) {
+        // If the request is successful
+        if (!error && response.statusCode === 200) {
+            //Title of the movie.
+            console.log("Title : " + JSON.parse(body).Title);
+            // Year the movie came out.
+            console.log("Release Year : " + JSON.parse(body).Year);
+            // IMDB Rating of the movie.
+            console.log("IMDB Rating: " + JSON.parse(body).imdbRating);
+            // Rotten Tomatoes Rating of the movie.
+            // Country where the movie was produced
+            console.log("Country: " + JSON.parse(body).Country);
+            // Language of the movie.
+            console.log("Language : " + JSON.parse(body).Language);
+            // Plot of the movie
+            console.log("Plot : " + JSON.parse(body).Plot);
+            // Actors in the movie.
+            console.log("Actors : " + JSON.parse(body).Actors);
+        }
+    });
+}
 
-    function moviefy(command, argument) {
+// This function reads the command and argument from the 
+// file random.txt and execute the command provided in it
+function dowhatify() {
+    var content = fs.readFileSync("random.txt", 'utf8').toString();
+    //console.log(content);
+    var comm = content.substring(0, content.indexOf(","));
+    var arg = content.substring(content.indexOf(",") + 1, content.length);
+    //console.log(comm);
+    //console.log(arg);
 
-        // Then run a request to the OMDB API with the movie specified
-        var queryUrl = "http://www.omdbapi.com/?t=" + argument + "&y=&plot=short&apikey=40e9cece";
-
-        request(queryUrl, function(error, response, body) {
-
-            // If the request is successful
-            if (!error && response.statusCode === 200) {
-
-                //Title of the movie.
-                console.log("Title : " + JSON.parse(body).Title);
-
-                // Year the movie came out.
-                console.log("Release Year : " + JSON.parse(body).Year);
-
-                // IMDB Rating of the movie.
-                console.log("IMDB Rating: " + JSON.parse(body).imdbRating);
-
-                // Rotten Tomatoes Rating of the movie.
-
-                // Country where the movie was produced
-                console.log("Country: " + JSON.parse(body).Country);
-
-                // Language of the movie.
-                console.log("Language : " + JSON.parse(body).Language);
-
-                // Plot of the movie
-                console.log("Plot : " + JSON.parse(body).Plot);
-
-                // Actors in the movie.
-                console.log("Actors : " + JSON.parse(body).Actors);
-
-            }
-        });
-
-    }
-
-    function dowhatify(command, argument) {
-        console.log(command + ',' + argument);
-    }
+    // call initiate function with the extracted command and argument
+    initiate(comm, arg)
+}
