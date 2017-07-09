@@ -77,8 +77,29 @@ function spotify(argument) {
 // This function searches OMDB through search API 
 // for the requested movie details in the argument
 function moviefy(argument) {
+
+    var nodeArgs = process.argv;
+
+    // Loop through all the words in the node argument
+    // Anding for-loop to handle the inclusion of "+"s
+    for (var i = 2; i < nodeArgs.length; i++) {
+
+        // Create an empty variable for holding the movie name
+        var movieName = "";
+
+
+        if (i > 2 && i < nodeArgs.length) {
+
+            movieName = movieName + "+" + nodeArgs[i];
+
+        } else {
+
+            movieName += nodeArgs[i];
+
+        }
+    }
     // Then run a request to the OMDB API with the movie specified
-    var queryUrl = "http://www.omdbapi.com/?t=" + argument + "&y=&plot=short&apikey=40e9cece";
+    var queryUrl = "http://www.omdbapi.com/?t=" + movieName + "&y=&plot=short&apikey=40e9cece";
     request(queryUrl, function(error, response, body) {
         // If the request is successful
         if (!error && response.statusCode === 200) {
