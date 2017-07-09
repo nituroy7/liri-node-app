@@ -87,7 +87,6 @@ function moviefy(argument) {
         // Create an empty variable for holding the movie name
         var movieName = "";
 
-
         if (i > 2 && i < nodeArgs.length) {
 
             movieName = movieName + "+" + nodeArgs[i];
@@ -95,7 +94,6 @@ function moviefy(argument) {
         } else {
 
             movieName += nodeArgs[i];
-
         }
     }
     // Then run a request to the OMDB API with the movie specified
