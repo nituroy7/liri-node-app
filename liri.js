@@ -27,7 +27,7 @@ function initiate(command, argument) {
             moviefy(argument);
             break;
         case 'do-what-it-says':
-            dowhatify();
+            doWhatIsay();
             break;
         default:
             console.log('\nUsage: node liri.js <command> <argument>');
@@ -44,16 +44,12 @@ function tweetify(argument) {
         access_token_key: keys.twitterKeys.access_token_key,
         access_token_secret: keys.twitterKeys.access_token_secret
     });
-    var params = {
-        user_id: argument,
-        since_id: 5,
-        max_id: 3,
-        count: 2
-    };
-    client.get('statuses/user_timeline', argument, function(error, tweets, response) {
-        if (!error) {
-            console.log(tweets);
 
+    client.get('statuses/user_timeline', function(error, tweets, response) {
+        if (!error) {
+            for (var i = 0; i < 20; i++) {
+                console.log("\n", i, "Tweet :" + tweets[i].text, "  ", "\n", "  Created at: " + tweets[i].created_at);
+            }
         } else {
             console.log(error);
         }
@@ -107,7 +103,7 @@ function moviefy(argument) {
 
 // This function reads the command and argument from the 
 // file random.txt and execute the command provided in it
-function dowhatify() {
+function doWhatIsay() {
     var content = fs.readFileSync("random.txt", 'utf8').toString();
     //console.log(content);
     var comm = content.substring(0, content.indexOf(","));
