@@ -109,7 +109,6 @@ function moviefy(argument) {
             console.log("Release Year : " + JSON.parse(body).Year);
             // IMDB Rating of the movie.
             console.log("IMDB Rating: " + JSON.parse(body).imdbRating);
-            // Rotten Tomatoes Rating of the movie.
             // Country where the movie was produced
             console.log("Country: " + JSON.parse(body).Country);
             // Language of the movie.
